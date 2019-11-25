@@ -2,7 +2,9 @@ package com.mmj.home.controller;
 
 import java.io.IOException;
 
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pi4j.device.piface.PiFace;
@@ -128,6 +130,29 @@ public class HomeController {
         } else {
             return "Interface PiFace not connected";
         }
+    }
+
+    /**
+     * Change the state of the connected object to the GPIO_X
+     *
+     * @param pin Gpio pin
+     * @return
+     */
+    @RequestMapping(value = "/changeStatePin/{pin}", method = RequestMethod.GET)
+    public String changeStateOnPinX(@PathVariable int pin) {
+
+        if (gpioPinDigitalOutput == null) {
+            try {
+                GpioController gpioController = GpioFactory.getInstance();
+                gpioPinDigitalOutput = gpioController.provisionDigitalOutputPin(RaspiPin.getPinByAddress(pin), "Pin" + pin, PinState.LOW);
+            } catch (UnsatisfiedLinkError e) {
+                return "Platform does not support this driver";
+            }
+        }
+
+        gpioPinDigitalOutput.toggle();
+
+        return "Pin " + pin + " is activated : " + gpioPinDigitalOutput.isHigh();
     }
 }
 
